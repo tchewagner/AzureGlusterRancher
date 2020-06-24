@@ -1,0 +1,51 @@
+az group create --name az-gluster1-rg --location eastus
+
+az network vnet create -g az-gluster1-rg -n MyVnet1 --address-prefix 10.200.0.0/16 --subnet-name MySubnet1 --subnet-prefix 10.200.1.0/24
+
+az vm create --name az-gluster01 --resource-group az-gluster1-rg --image CentOS --size Standard_B1ls --data-disk-sizes-gb 20 --size Standard_DS2_v2 --vnet-name MyVnet1 --subnet MySubnet1 --nsg az-myvnet1-nsg --public-ip-address az-gluster1-pub1 --admin-username student --admin-password 'Pa55w.rd1234'
+
+az vm create --name az-gluster02 --resource-group az-gluster1-rg --image CentOS --size Standard_B1ls --data-disk-sizes-gb 20 --size Standard_DS2_v2 --vnet-name MyVnet1 --subnet MySubnet1 --nsg az-myvnet1-nsg --public-ip-address az-gluster1-pub2 --admin-username student --admin-password 'Pa55w.rd1234'
+
+-----------------------------------
+
+az network vnet subnet create --resource-group az-gluster1-rg --name MySubnet2 --address-prefixes 10.200.2.0/24 --network-security-group MyNsg --vnet-name MyVnet1
+
+az vm create --name az-rancher1 --resource-group az-gluster1-rg --image CentOS --size Standard_B1ls --data-disk-sizes-gb 20 --size Standard_DS2_v2 --vnet-name MyVnet1 --subnet MySubnet1 --nsg az-myvnet1-nsg --public-ip-address az-gluster1-pub3 --admin-username student --admin-password 'Pa55w.rd1234'
+
+az vm create --name az-worker1 --resource-group az-gluster1-rg --image CentOS --size Standard_B1ls --data-disk-sizes-gb 20 --size Standard_DS2_v2 --vnet-name MyVnet1 --subnet MySubnet1 --nsg az-myvnet1-nsg --public-ip-address az-gluster1-pub4 --admin-username student --admin-password 'Pa55w.rd1234'
+
+az vm create --name az-worker2 --resource-group az-gluster1-rg --image CentOS --size Standard_B1ls --data-disk-sizes-gb 20 --size Standard_DS2_v2 --vnet-name MyVnet1 --subnet MySubnet1 --nsg az-myvnet1-nsg --public-ip-address az-gluster1-pub5 --admin-username student --admin-password 'Pa55w.rd1234'
+
+az vm create --name az-worker3 --resource-group az-gluster1-rg --image CentOS --size Standard_B1ls --data-disk-sizes-gb 20 --size Standard_DS2_v2 --vnet-name MyVnet1 --subnet MySubnet1 --nsg az-myvnet1-nsg --public-ip-address az-gluster1-pub6 --admin-username student --admin-password 'Pa55w.rd1234'
+
+
+#### Limpar Ambiente ao Final do dia
+az group delete --name NetworkWatcherRG --no-wait --yes
+
+az group list --query "[?starts_with(name,'az')].name" --output tsv | xargs -L1 bash -c 'az group delete --name $0 --no-wait --yes'
+
+az group list --output table
+
+
+
+
+----------------------------------------------------
+sudo -s
+
+yum install centos-release-gluster glusterfs-cli -y
+systemctl enable glusterd
+systemctl start glusterd
+mkdir /bricks/brick1/gv0
+
+#Arruar o /etc/hosts
+
+#Server1
+gluster peer probe server2
+#Server2
+gluster peer probe server1
+
+# gluster volume create gv0 replica 2 server1:/bricks/brick1/gv0 server2:/bricks/brick1/gv0
+# gluster volume start gv0
+
+# gluster volume info
+# gstatus -v <volume> -l
